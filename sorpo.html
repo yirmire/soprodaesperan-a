@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sopro de Esperança - Sobrevivência Emocional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            scroll-behavior: smooth;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .panic-bg {
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            transition: background-color 2s ease;
+        }
+        .breathing-circle {
+            width: 180px;
+            height: 180px;
+            background: rgba(251, 191, 36, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 4s ease-in-out;
+        }
+        .expand { transform: scale(1.6); background: rgba(251, 191, 36, 0.4); }
+        .shrink { transform: scale(1); background: rgba(251, 191, 36, 0.2); }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Nav -->
+    <nav class="p-4 md:p-6 sticky top-0 bg-white/70 backdrop-blur-md z-40 border-b border-slate-100">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="window.switchTab('home')">
+                <i data-lucide="wind" class="text-amber-500 w-8 h-8"></i>
+                <span class="font-extrabold text-lg md:text-xl tracking-tighter">Sopro de Esperança</span>
+            </div>
+            
+            <div class="flex gap-3 md:gap-6 overflow-x-auto pb-1 no-scrollbar">
+                <button onclick="window.switchTab('home')" class="nav-link font-semibold text-amber-600 border-b-2 border-amber-600" id="btn-home">Início</button>
+                <button onclick="window.switchTab('mural')" class="nav-link font-semibold text-slate-500 hover:text-amber-600" id="btn-mural">Mural</button>
+                <button onclick="window.switchTab('pill')" class="nav-link font-semibold text-slate-500 hover:text-amber-600" id="btn-pill">Pílulas</button>
+                <button onclick="window.switchTab('chat')" class="nav-link font-semibold text-slate-500 hover:text-amber-600" id="btn-chat">Chat</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Panic Bar -->
+    <div id="panic-bar" class="bg-red-50 border-b border-red-100 p-3 text-center">
+        <button onclick="window.startIntervention()" class="text-red-600 font-bold flex items-center justify-center gap-2 mx-auto hover:scale-105 transition-transform">
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+            ESTOU NO MEU LIMITE AGORA
+        </button>
+    </div>
+
+    <!-- 1. HOME -->
+    <section id="view-home" class="fade-in max-w-4xl mx-auto px-6 py-12">
+        <header class="text-center mb-16">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Um lugar para <span class="text-amber-600">respirar</span>.</h1>
+            <p class="text-lg text-slate-600 mb-8">Sua jornada é única. Validamos o seu cansaço e a sua coragem.</p>
+        </header>
+
+        <div class="bg-slate-900 rounded-[2rem] p-8 md:p-12 text-white mb-16 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i data-lucide="sparkles" class="text-amber-400"></i> Desabafo Inteligente</h2>
+            <p class="text-slate-400 mb-6">O que está pesando no seu coração hoje? (Privado)</p>
+            <textarea id="ai-input" class="w-full bg-slate-800 rounded-xl p-4 text-white border-none focus:ring-2 focus:ring-amber-500 mb-4 h-32" placeholder="Sinto que..."></textarea>
+            <button onclick="window.askAI()" id="ai-btn" class="bg-amber-500 text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-amber-400 transition-all">Receber Apoio</button>
+            <div id="ai-output" class="mt-6 italic text-slate-300 hidden border-l-2 border-amber-500 pl-4 bg-slate-800/50 p-4 rounded-r-xl"></div>
+        </div>
+    </section>
+
+    <!-- 2. PANIC VIEW -->
+    <section id="view-panic" class="fixed inset-0 z-50 panic-bg hidden flex flex-col items-center justify-center text-center p-6">
+        <div id="panic-content" class="fade-in">
+            <h2 class="text-white text-2xl font-light mb-12 tracking-widest uppercase" id="panic-status">Apenas respire</h2>
+            <div class="flex justify-center">
+                <div id="breathing-circle" class="breathing-circle">
+                    <span id="breathing-text" class="text-amber-500 font-bold uppercase tracking-widest">Aguarde</span>
+                </div>
+            </div>
+            <p class="text-slate-500 mt-16 mb-2 font-mono text-xl" id="panic-timer">60s</p>
+            <p class="text-slate-400 italic">Feche os olhos se desejar. Eu aviso quando passar.</p>
+        </div>
+        <button onclick="window.stopIntervention()" class="mt-16 text-slate-600 hover:text-slate-300 underline text-sm transition">Sair do modo de pânico</button>
+    </section>
+
+    <!-- 3. MURAL -->
+    <section id="view-mural" class="hidden fade-in max-w-4xl mx-auto px-6 py-12">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-black mb-4">O que deu errado hoje?</h2>
+            <p class="text-slate-500 italic">"A perfeição é uma mentira que nos cansa." — Poste aqui sua pequena derrota do dia.</p>
+        </div>
+        
+        <div class="glass-card p-6 rounded-2xl mb-12">
+            <div class="flex flex-col md:flex-row gap-2">
+                <input type="text" id="failure-input" placeholder="Ex: Hoje não tive forças para arrumar a cama..." class="flex-grow bg-slate-100 p-4 rounded-xl outline-none focus:ring-2 focus:ring-slate-300">
+                <button onclick="window.postFailure()" class="bg-slate-800 text-white px-8 py-4 rounded-xl hover:bg-slate-700 font-bold">Publicar Anonimamente</button>
+            </div>
+        </div>
+
+        <div id="failures-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Failures -->
+        </div>
+    </section>
+
+    <!-- 4. PILLS -->
+    <section id="view-pill" class="hidden fade-in max-w-4xl mx-auto px-6 py-12">
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-6">
+                <h2 class="text-3xl font-black">Pílulas de Realidade</h2>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-amber-600 mb-2">Descanso não é recompensa</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">Você não precisa "merecer" o descanso através da produtividade. Descansar é um direito biológico e emocional. Pare antes de quebrar.</p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="font-bold text-slate-800 mb-2">Tudo bem estar cansado</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">A sociedade exige que estejamos sempre 'on'. Estar cansado não é falta de fé ou de garra, é apenas ser humano num mundo acelerado.</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100">
+                <h3 class="font-bold text-xl mb-4 flex items-center gap-2">
+                    <i data-lucide="shield-off" class="w-5 h-5 text-red-500"></i> Scripts: Diga Não
+                </h3>
+                <p class="text-sm text-slate-600 mb-6">Copie e cole estas respostas quando não tiver energia para negociar:</p>
+                
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="window.generateNo('work')" class="bg-white px-4 py-2 rounded-lg text-sm font-semibold border border-amber-200 hover:bg-amber-100 transition">Trabalho</button>
+                    <button onclick="window.generateNo('friends')" class="bg-white px-4 py-2 rounded-lg text-sm font-semibold border border-amber-200 hover:bg-amber-100 transition">Amigos</button>
+                    <button onclick="window.generateNo('family')" class="bg-white px-4 py-2 rounded-lg text-sm font-semibold border border-amber-200 hover:bg-amber-100 transition">Família</button>
+                </div>
+
+                <div id="no-script-box" class="bg-white p-4 rounded-xl border border-amber-100 min-h-[100px] text-slate-700 text-sm italic relative flex items-center justify-center text-center">
+                    Escolha um contexto acima para gerar o script...
+                </div>
+                <button onclick="window.copyNo()" class="mt-4 text-xs font-bold text-amber-600 flex items-center gap-1 hover:underline">
+                    <i data-lucide="copy" class="w-3 h-3"></i> COPIAR TEXTO
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. CHAT -->
+    <section id="view-chat" class="hidden fade-in max-w-4xl mx-auto px-6 py-12">
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden h-[60vh] flex flex-col border border-slate-100">
+            <div class="bg-slate-900 p-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="font-bold">Círculo de Apoio</span>
+                </div>
+                <button onclick="window.setNickname()" class="text-xs bg-white/10 px-3 py-1 rounded-full hover:bg-white/20 transition">Apelido: <span id="current-nick">...</span></button>
+            </div>
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4 bg-slate-50 flex flex-col">
+                <p class="text-center text-slate-400 text-sm py-10">Conectando ao círculo de conversa...</p>
+            </div>
+            <div class="p-4 bg-white border-t flex gap-2">
+                <input type="text" id="chat-input" class="flex-grow p-3 bg-slate-100 rounded-xl outline-none" placeholder="Envie uma mensagem de carinho...">
+                <button onclick="window.sendMessage()" class="bg-amber-500 p-3 rounded-xl hover:bg-amber-400 transition"><i data-lucide="send" class="w-5 h-5 text-slate-900"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center py-12 text-slate-400 text-xs border-t border-slate-100 mt-12">
+        <p>Sopro de Esperança — Você é mais do que sua produtividade.</p>
+        <p class="mt-2">Centro de Valorização da Vida: Ligue 188</p>
+    </footer>
+
+    <!-- SCRIPT CENTRAL -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State & Config
+        const firebaseConfig = {
+  apiKey: "AIzaSyBgzEWPXACVU_NaYn7PlwzjqyCp0BmeapE",
+  authDomain: "sopro-de-esperanca.firebaseapp.com",
+  projectId: "sopro-de-esperanca",
+  storageBucket: "sopro-de-esperanca.firebasestorage.app",
+  messagingSenderId: "921429993449",
+  appId: "1:921429993449:web:e5afde9f83f70496dbcd78",
+  measurementId: "G-X8PCS5FJN6"
+};
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sopro-v2-stable';
+        const apiKey = "AIzaSyCULK1w4iDEUfAv5ZAcbNvy90TPuy4ER0A"; 
+
+        let user = null;
+        let nickname = localStorage.getItem('sopro_nickname') || 'Viajante ' + Math.floor(Math.random() * 999);
+        document.getElementById('current-nick').innerText = nickname;
+
+        // AUTHENTICATION (Rule 3)
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth failed", err);
+            }
+        };
+
+        onAuthStateChanged(auth, u => {
+            user = u;
+            if (u) {
+                startDataListeners();
+            }
+        });
+
+        initAuth();
+
+        // 1. NAVIGATION (Explicit Window Export)
+        window.switchTab = (tab) => {
+            const views = ['home', 'panic', 'mural', 'pill', 'chat'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if(el) el.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(`view-${tab}`);
+            if(target) target.classList.remove('hidden');
+
+            const navBtns = ['home', 'mural', 'pill', 'chat'];
+            navBtns.forEach(b => {
+                const btn = document.getElementById(`btn-${b}`);
+                if(!btn) return;
+                if(b === tab) {
+                    btn.className = "nav-link font-bold text-amber-600 border-b-2 border-amber-600 pb-1";
+                } else {
+                    btn.className = "nav-link font-semibold text-slate-500 hover:text-amber-600";
+                }
+            });
+            window.scrollTo(0,0);
+            lucide.createIcons();
+        };
+
+        // 2. INTERVENTION (REFINED)
+        let interventionTimer = null;
+        window.startIntervention = () => {
+            document.getElementById('view-panic').classList.remove('hidden');
+            let seconds = 60;
+            const timerEl = document.getElementById('panic-timer');
+            const textEl = document.getElementById('breathing-text');
+            const circleEl = document.getElementById('breathing-circle');
+            
+            clearInterval(interventionTimer);
+            
+            const updateCycle = () => {
+                const phase = (60 - seconds) % 8;
+                if (phase < 4) {
+                    textEl.innerText = "Inspire";
+                    circleEl.className = "breathing-circle expand";
+                } else {
+                    textEl.innerText = "Expire";
+                    circleEl.className = "breathing-circle shrink";
+                }
+            };
+
+            updateCycle();
+            interventionTimer = setInterval(() => {
+                seconds--;
+                timerEl.innerText = seconds + 's';
+                updateCycle();
+
+                if (seconds <= 0) {
+                    window.stopIntervention();
+                    alert("Você concluiu 1 minuto de pausa. Respire fundo e volte devagar.");
+                }
+            }, 1000);
+        };
+
+        window.stopIntervention = () => {
+            clearInterval(interventionTimer);
+            document.getElementById('view-panic').classList.add('hidden');
+        };
+
+        // 3. MURAL (Rule 1 & 2)
+        window.postFailure = async () => {
+            const input = document.getElementById('failure-input');
+            const val = input.value.trim();
+            if(!val || !user) return;
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'failures'), {
+                    text: val,
+                    timestamp: serverTimestamp()
+                });
+                input.value = '';
+            } catch (e) { console.error(e); }
+        };
+
+        // 4. PILLS & SCRIPTS
+        const noScripts = {
+            work: "Agradeço o convite, mas no momento estou focado em prioridades já estabelecidas e não consigo assumir essa nova tarefa com a qualidade necessária. Podemos conversar em outro momento?",
+            friends: "Poxa, adoraria ir, mas hoje meu corpo e minha mente estão pedindo uma pausa total. Vou ficar quietinho em casa para recarregar. Divirtam-se por mim!",
+            family: "Entendo que é importante, mas hoje não tenho energia emocional para esse compromisso. Preciso de um tempo para mim. Espero que entendam."
+        };
+
+        window.generateNo = (type) => {
+            document.getElementById('no-script-box').innerText = noScripts[type];
+        };
+
+        window.copyNo = () => {
+            const text = document.getElementById('no-script-box').innerText;
+            if(text.includes("Escolha")) return;
+            navigator.clipboard.writeText(text).then(() => alert("Copiado!")).catch(() => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert("Copiado!");
+            });
+        };
+
+        // 5. CHAT
+        window.sendMessage = async () => {
+            const input = document.getElementById('chat-input');
+            const val = input.value.trim();
+            if(!val || !user) return;
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                    text: val,
+                    nickname: nickname,
+                    uid: user.uid,
+                    timestamp: serverTimestamp()
+                });
+                input.value = '';
+            } catch (e) { console.error(e); }
+        };
+
+        window.setNickname = () => {
+            const n = prompt("Escolha um apelido carinhoso:", nickname);
+            if(n && n.trim()) {
+                nickname = n.trim().substring(0, 15);
+                localStorage.setItem('sopro_nickname', nickname);
+                document.getElementById('current-nick').innerText = nickname;
+            }
+        };
+
+        // 6. AI WITH BACKOFF
+        window.askAI = async () => {
+            const input = document.getElementById('ai-input').value.trim();
+            const output = document.getElementById('ai-output');
+            const btn = document.getElementById('ai-btn');
+            if(!input) return;
+
+            btn.disabled = true;
+            btn.innerHTML = 'Ouvindo<span class="loading-dots"></span>';
+            output.classList.remove('hidden');
+            output.innerText = "Refletindo sobre as suas palavras...";
+
+            const callGemini = async (retries = 5, delay = 1000) => {
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            contents: [{parts: [{text: input}]}],
+                            systemInstruction: {parts: [{text: "Você é um conselheiro realista e acolhedor. Valide o cansaço do usuário. Não use frases feitas. Responda em no máximo 3 frases com um tom de 'estou aqui com você'."}]}
+                        })
+                    });
+                    if(!res.ok) throw new Error();
+                    const data = await res.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch (e) {
+                    if (retries > 0) {
+                        await new Promise(r => setTimeout(r, delay));
+                        return callGemini(retries - 1, delay * 2);
+                    }
+                    throw e;
+                }
+            };
+
+            try {
+                const text = await callGemini();
+                output.innerText = text;
+            } catch (e) {
+                output.innerText = "Tive uma falha na conexão, mas lembre-se: seu valor não depende do quanto você faz hoje.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Receber Apoio';
+            }
+        };
+
+        // 7. LISTENERS (Rule 2: Fetch and Filter in memory)
+        function startDataListeners() {
+            if(!user) return;
+
+            // Mural Listener
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'failures'), (snap) => {
+                const container = document.getElementById('failures-list');
+                const fails = [];
+                snap.forEach(d => fails.push(d.data()));
+                fails.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                
+                container.innerHTML = fails.slice(0, 20).map(f => `
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-slate-300 animate-fade-in">
+                        <p class="text-sm italic text-slate-700">"${f.text}"</p>
+                    </div>
+                `).join('');
+            }, (err) => console.error("Mural error", err));
+
+            // Chat Listener
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), (snap) => {
+                const container = document.getElementById('chat-messages');
+                const msgs = [];
+                snap.forEach(d => msgs.push(d.data()));
+                msgs.sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+                
+                if(msgs.length === 0) {
+                    container.innerHTML = '<p class="text-center text-slate-400 text-sm py-10">O silêncio também é bom. Mas se quiser falar, o chat está livre.</p>';
+                    return;
+                }
+
+                container.innerHTML = msgs.slice(-40).map(m => {
+                    const isMe = m.uid === user.uid;
+                    return `
+                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-fade-in">
+                            <span class="text-[10px] text-slate-400 px-2 uppercase font-bold">${m.nickname || 'Viajante'}</span>
+                            <div class="max-w-[85%] px-4 py-2 rounded-2xl ${isMe ? 'bg-amber-500 text-slate-900' : 'bg-white text-slate-600 border border-slate-200'} shadow-sm text-sm">
+                                ${m.text}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                container.scrollTop = container.scrollHeight;
+            }, (err) => console.error("Chat error", err));
+        }
+
+        // Initialize Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
